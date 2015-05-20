@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using StaffDirectory.DataAccess;
+using System.Data.Entity;
 
 namespace StaffDirectory.Controllers
 {
@@ -31,7 +32,65 @@ namespace StaffDirectory.Controllers
             return emps;
         }
 
+        public HttpResponseMessage Delete(int id)
+        {
+            PersonContext db = new PersonContext();
+            Person person = db.People.Find(id);
 
+            if (person == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
+            db.People.Remove(person);
+
+            db.SaveChanges();
+            
+            return Request.CreateResponse(HttpStatusCode.OK, person);
+
+
+        }
+
+        public HttpResponseMessage Put(int id, Person person)
+        {
+            PersonContext db = new PersonContext();
+
+            if (!ModelState.IsValid)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+
+            if (id != person.ID)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
+            db.Entry(person).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return Request.CreateResponse(HttpStatusCode.OK);
+        }
+
+        public HttpResponseMessage Post(Person person)
+        {
+            PersonContext db = new PersonContext();
+
+            if (ModelState.IsValid)
+            {
+                db.People.Add(person);
+                db.SaveChanges();
+
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, person);
+
+                return response;
+            }
+                
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+
+            }
+
+        }
         
 
 
